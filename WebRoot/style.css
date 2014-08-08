@@ -1,0 +1,12 @@
+html, body {
+  margin: 0px;
+  padding: 0px;
+  border: 0px;
+}
+
+.styleTable tr:hover{background-color: gold;-webkit-transition:background-color 0.5s linear;}
+.styleTable th{background:#4F81BD;color:#fff;line-height:30px;font-weight:normal;border:1px solid #aaa}
+.styleTable td{padding-left:8px;line-height:25px;border:1px solid #aaa}
+.styleTable .grid_one{background:#E9EDF4;-webkit-transition:background-color 0.5s linear;}
+.styleTable .grid_two{background:#D0D8E8;-webkit-transition:background-color 0.5s linear;}
+.styleTable .center{padding-left:0px;text-align:center;}

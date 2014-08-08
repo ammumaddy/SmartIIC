@@ -1,0 +1,165 @@
+<!-- 		(C) COPYRIGHT International Business Machines Corp., 2013 -->
+<!-- All rights reserved * Licensed Materials - Property of IBM         -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" href="style.css">
+<title>Approval Workflow</title>
+<script type="text/javascript">
+	function printResult(result) {
+		document.getElementById("resultState").textContent = result.state;
+		var table = document.getElementById("appTable");
+		var keys = Object.keys(result);
+		for ( var i in keys) {
+			var key = keys[i];
+			if (key !== "state") {
+				var row = table.insertRow(-1);
+				row.innerHTML = "<td colspan=\"1\" id=\"result" + i + "\"><div>"
+						+ "</div></td><td colspan=\"2\"><div>"
+						+ result[key]["process"] + "</div></td>";
+				document.getElementById("result" + i).textContent = decodeURIComponent(result[key]["message"]);
+			}
+		}
+
+		document.getElementById("submit").disabled = false;
+	}
+
+	function printInfo(result) {
+		var table = document.getElementById("mainTable");
+		var keys = Object.keys(result);
+		for ( var i in keys) {
+			var key = keys[i];
+			var row = table.insertRow(-1);
+			row.innerHTML = "<tr><td colspan=\"1\" id=\"result" + i + "\">"
+					+ "</td><td colspan=\"2\" id=\"resultv" + i + "\">"
+					+ result[key]["process"] + "</div></td></tr>";
+			document.getElementById("result" + i).textContent = decodeURIComponent(keys[i]) + ": ";
+			document.getElementById("resultv" + i).textContent = decodeURIComponent(result[key]);
+		}
+	}
+
+	function clearResults() {
+		var table = document.getElementById("appTable");
+		while (table.rows.length > 4) {
+			table.deleteRow(4);
+		}
+	}
+
+	function getRequestHandler(req) {
+		return function() {
+			if (req.readyState == 4) {
+				if (req.status == 200) {
+					var result = eval("(" + req.responseText + ")");
+					printResult(result);
+				} else {
+					printResult("HTTP Error Received", req.status);
+				}
+			}
+		}
+	}
+
+	function getAutoRequestHandler(req2) {
+		return function() {
+			if (req2.readyState == 4) {
+				if (req2.status == 200) {
+					var info = eval("(" + req2.responseText + ")");
+					printInfo(info);
+				} else {
+					printInfo("HTTP Error Received", req2.status);
+				}
+			}
+		}
+	}
+
+	function submitRequest() {
+		var url = "FrontendServlet";
+		data = document.getElementById("message").value;
+		if (data == '') {
+			clearResults();
+			document.getElementById("resultState").innerHTML = "Select Opinion";
+		} else {
+			document.getElementById("submit").disabled = true;
+			var parms = "message=" + data;
+			var request = new XMLHttpRequest();
+			request.onreadystatechange = getRequestHandler(request);
+			request.open("POST", url + "?" + parms, true);
+			request.setRequestHeader("Content-type",
+					"application/x-www-form-urlencoded");
+			request.setRequestHeader("Content-length", parms.length);
+			request.send(parms);
+			clearResults();
+			document.getElementById("resultState").innerHTML = "Waiting...";
+		}
+	}
+
+	function checkSubmitKey(e) {
+		if (document.getElementById("submit").disabled == false) {
+			var charCode;
+
+			if (e && e.which) {
+				charCode = e.which;
+			} else if (window.event) {
+				e = window.event;
+				charCode = e.keyCode;
+			}
+
+			if (charCode == 13) {
+				submitRequest();
+			}
+		}
+	}
+
+	function submitAutoRequest() {
+		var url2 = "StartServlet";
+		var parms2 = "lorem=ipsum&name=binny";
+		var request2 = new XMLHttpRequest();
+		request2.onreadystatechange = getAutoRequestHandler(request2);
+		request2.open("POST", url2 + "?" + parms2, true);
+		request2.setRequestHeader("Content-type",
+				"application/x-www-form-urlencoded");
+		request2.setRequestHeader("Content-length", parms2.length);
+		request2.send(null);
+
+	}
+
+	document.onreadystatechange = function() {
+		if (document.readyState == "complete") {
+			submitAutoRequest();
+		}
+	}
+</script>
+
+</head>
+<body>
+	<h2 align="center">Application Information:</h2>
+	<div id="resultInfo" align="center">
+		<table id="mainTable" class="styleTable">
+
+		</table>
+	</div>
+	<p>
+	<table id="appTable" align="center">
+		<tr>
+			<td width="50%"><b>Approval Opinion:</b></td>
+			<td> <select name="message"
+				id="message"><option value="">--Select--</option><option value="approve">Approve</option><option value="reject">Reject</option></td>
+			<td align="left"><input type="button" id="submit"
+				value="Send SMS" onclick="submitRequest()" /></td>
+			<td></td>
+		</tr>
+		<tr>
+			<td height="10" colspan="4"></td>
+		</tr>
+		<tr>
+			<td><b>SMS Result:</b></td>
+			<td colspan="1"><div id="resultState">None</div></td>
+			<td></td>
+		</tr>
+		<tr id="resultMessages">
+			<!-- Placeholder row to store responses later -->
+			<td height="10" colspan="4"></td>
+		</tr>
+	</table>
+</body>
+</html>
