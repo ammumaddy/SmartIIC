@@ -122,7 +122,6 @@ public class FrontendServlet extends HttpServlet {
 
 		// Process the JMS reply messages
 		ArrayList<String> replyMsgTxt = new ArrayList<String>();
-		int messagesReceived = 0;
 		if (messagesSent != 0) {
 			try {
 				// Create the JMS resources required to receive the reply
@@ -141,34 +140,26 @@ public class FrontendServlet extends HttpServlet {
 
 				// Wait for the reply
 				TextMessage replyMsg;
-				while ((messagesReceived < messagesSent)
-						&& ((replyMsg = (TextMessage) consumer.receive(2000)) != null)) {
-					replyMsgTxt.add(new String(replyMsg.getText().getBytes(
-							"UTF-8"), "UTF-8"));
-					messagesReceived++;
-				}
+				replyMsg = (TextMessage) consumer.receive(2000);
+				replyMsgTxt.add(new String(
+						replyMsg.getText().getBytes("UTF-8"), "UTF-8"));
 
 				// Clean-up the JMS resources
 				consumer.close();
 				session.close();
 				connection.close();
-
 			} catch (Exception e) {
 				e.printStackTrace();
 				errBuf.append(e.getMessage() + "::");
 			}
-
+			System.out.println("replyMsgTxt================== " + replyMsgTxt);
 			// Process the message received and convert it to JSON before
 			// sending
 			// back to the web page
 			if (errBuf.length() != 0) {
 				generateReply(response, "ERROR!", errBuf.toString());
 			} else {
-				if (messagesReceived == 0) {
-					generateReply(response, "NO RESPONSE!", replyMsgTxt);
-				} else {
-					generateReply(response, "SUCCESS!", replyMsgTxt);
-				}
+				generateReply(response, "SUCCESS!", replyMsgTxt);
 			}
 		}
 
@@ -196,8 +187,6 @@ public class FrontendServlet extends HttpServlet {
 		// batch of messages
 		Random rand = new Random();
 		int ID = rand.nextInt();
-		String msg = request.getParameter("message");
-		System.out.println("msg===============" + msg);
 		if (request.getQueryString().startsWith("message=")) {
 			// Extract the 'message' parameter from the request message, this
 			// contains the message to divide and send to the back end
@@ -208,7 +197,6 @@ public class FrontendServlet extends HttpServlet {
 			// Split the 'message' into individual words to allow for parallel
 			// processing at the back end
 			System.out.println("message==" + message);
-			String[] messages = message.split(" ");
 
 			// Process the JMS request messages
 			try {
@@ -227,21 +215,18 @@ public class FrontendServlet extends HttpServlet {
 
 				// Start the connection so messages can be sent
 				connection.start();
-				for (String word : messages) {
-					// Build the request message specifying the:
-					// - word to process
-					// - the reply destination to use
-					TextMessage requestMsg = session.createTextMessage(word);
-					requestMsg.setJMSReplyTo(myReplyQueue);
-					requestMsg.setIntProperty("batchID", ID);
-					requestMsg.setIntProperty(
-							WMQConstants.JMS_IBM_CHARACTER_SET,
-							WMQConstants.CCSID_UTF8);
+				// Build the request message specifying the:
+				// - word to process
+				// - the reply destination to use
+				TextMessage requestMsg = session.createTextMessage(message);
+				requestMsg.setJMSReplyTo(myReplyQueue);
+				requestMsg.setIntProperty("batchID", ID);
+				requestMsg.setIntProperty(WMQConstants.JMS_IBM_CHARACTER_SET,
+						WMQConstants.CCSID_UTF8);
 
-					// Send the request message
-					producer.send(requestMsg);
-				}
-				messagesSent = messages.length;
+				// Send the request message
+				producer.send(requestMsg);
+				messagesSent = 150;
 
 				// Clean-up the JMS resources
 				producer.close();
@@ -284,36 +269,11 @@ public class FrontendServlet extends HttpServlet {
 
 	}
 
-	/**
-	 * Generate a JSON fragment in the HTTP response which includes the success
-	 * status and the contents of the converted sentence message A typical JSON
-	 * fragment would be: { "state": "SUCCESS!", "message100": { "message" :
-	 * "HELLO" , "process" :
-	 * "Processed by worker ID:ea02d386edf109611a3343d09c57431a" },
-	 * "message101": { "message" : "WORLD" , "process" :
-	 * "Processed by worker ID:4d5337ba89ee1085accd56e71001456b" }, }
-	 */
 	private void generateReply(HttpServletResponse response, String state,
 			ArrayList<String> messages) {
 		try {
 			PrintWriter out = response.getWriter();
-			out.println("{ \"state\": \"" + state + "\"");
-			int i = 100;
-			for (String msg : messages) {
-				String[] splitMessages = msg.split("\t", 2);
-				if (splitMessages.length == 2) {
-					out.println(",\"message" + i + "\": { \"message\": \""
-							+ URLEncoder.encode(splitMessages[0], "UTF-8")
-							+ "\", " + "\"process\": \"" + splitMessages[1]
-							+ "\"}	");
-				} else {
-					out.println(",\"message" + i + "\": { \"message\": \""
-							+ splitMessages[0] + "\", " + "\"process\": \""
-							+ "undefined" + "\"}");
-				}
-				i++;
-			}
-			out.println("}");
+			out.println(state + "@" + messages.toArray()[0]);
 			out.close();
 		} catch (IOException e) {
 			e.printStackTrace();

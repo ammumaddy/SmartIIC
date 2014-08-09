@@ -8,19 +8,14 @@
 <title>Approval Workflow</title>
 <script type="text/javascript">
 	function printResult(result) {
-		document.getElementById("resultState").textContent = result.state;
+		var values = result.split("@");
+		document.getElementById("resultState").textContent = values[0];
 		var table = document.getElementById("appTable");
-		var keys = Object.keys(result);
-		for ( var i in keys) {
-			var key = keys[i];
-			if (key !== "state") {
-				var row = table.insertRow(-1);
-				row.innerHTML = "<td colspan=\"1\" id=\"result" + i + "\"><div>"
-						+ "</div></td><td colspan=\"2\"><div>"
-						+ result[key]["process"] + "</div></td>";
-				document.getElementById("result" + i).textContent = decodeURIComponent(result[key]["message"]);
-			}
-		}
+		var row = table.insertRow(-1);
+		var i = 0;
+		row.innerHTML = "<td colspan=\"1\" id=\"result" + i + "\"><div>"
+				+ "</div></td><td colspan=\"2\" id=\"result1" + i + "\"></td>";
+		document.getElementById("result1" + i).textContent = decodeURIComponent(values[1]);
 
 		document.getElementById("submit").disabled = false;
 	}
@@ -31,11 +26,11 @@
 		for ( var i in keys) {
 			var key = keys[i];
 			var row = table.insertRow(-1);
-			row.innerHTML = "<tr><td colspan=\"1\" id=\"result" + i + "\">"
-					+ "</td><td colspan=\"2\" id=\"resultv" + i + "\">"
-					+ result[key]["process"] + "</div></td></tr>";
-			document.getElementById("result" + i).textContent = decodeURIComponent(keys[i]) + ": ";
-			document.getElementById("resultv" + i).textContent = decodeURIComponent(result[key]);
+			row.innerHTML = "<tr><td colspan=\"1\" id=\"res" + i + "\">"
+					+ "</td><td colspan=\"2\" id=\"resv" + i + "\"></div></td></tr>";
+			document.getElementById("res" + i).textContent = decodeURIComponent(keys[i])
+					+ ": ";
+			document.getElementById("resv" + i).textContent = decodeURIComponent(result[key]);
 		}
 	}
 
@@ -50,7 +45,7 @@
 		return function() {
 			if (req.readyState == 4) {
 				if (req.status == 200) {
-					var result = eval("(" + req.responseText + ")");
+					var result = req.responseText;
 					printResult(result);
 				} else {
 					printResult("HTTP Error Received", req.status);
@@ -142,8 +137,10 @@
 	<table id="appTable" align="center">
 		<tr>
 			<td width="50%"><b>Approval Opinion:</b></td>
-			<td> <select name="message"
-				id="message"><option value="">--Select--</option><option value="approve">Approve</option><option value="reject">Reject</option></td>
+			<td><select name="message" id="message"><option
+						value="">--Select--</option>
+					<option value="approve">Approve</option>
+					<option value="reject">Reject</option></td>
 			<td align="left"><input type="button" id="submit"
 				value="Send SMS" onclick="submitRequest()" /></td>
 			<td></td>

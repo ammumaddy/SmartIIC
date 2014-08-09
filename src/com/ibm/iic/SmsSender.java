@@ -12,17 +12,17 @@ import com.twilio.sdk.resource.list.*;
  
 public class SmsSender { 
  // Find your Account Sid and Token at twilio.com/user/account 
- public static final String ACCOUNT_SID = "ACfe05e2092bea77df8a431973e0dd98eb"; 
- public static final String AUTH_TOKEN = "8269ac3c0599bb76d8774beaa8ab026a"; 
+ public static final String ACCOUNT_SID = ""; 
+ public static final String AUTH_TOKEN = ""; 
  
- public static void main(String[]args) throws TwilioRestException { 
+ public static void sendSMS(String mobile, String body) throws TwilioRestException { 
 	TwilioRestClient client = new TwilioRestClient(ACCOUNT_SID, AUTH_TOKEN); 
  
 	 // Build the parameters 
 	 List<NameValuePair> params = new ArrayList<NameValuePair>();  
-	 params.add(new BasicNameValuePair("From", "+19376884552"));
-	 params.add(new BasicNameValuePair("To", "+8618502158511"));
-	 params.add(new BasicNameValuePair("Body", "This is the fist ¶ÌÐÅ£¡"));
+	 params.add(new BasicNameValuePair("From", "+"));
+	 params.add(new BasicNameValuePair("To", "+"));
+	 params.add(new BasicNameValuePair("Body", body));
 	 
 	 MessageFactory messageFactory = client.getAccount().getMessageFactory(); 
 	 Message message = messageFactory.create(params); 

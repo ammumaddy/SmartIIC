@@ -1,6 +1,7 @@
 package com.cloudant;
 
 import java.net.MalformedURLException;
+
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
 import org.ektorp.http.HttpClient;
@@ -11,7 +12,7 @@ import org.ektorp.impl.StdCouchDbInstance;
 public class CrudWithEktorp {
 
 	public CrudRepository cloudantConnect() {
-
+		
 		final String user = "cf163141-1e0d-4556-aa47-caa4fe5b4ce7-bluemix";
 		final String pass = "02c6db608127ceb94f3320e9c164fc90e2c20559d79da71236c9c9eedbb7f294";
 		final String db = "iicsupport";
@@ -91,19 +92,20 @@ public class CrudWithEktorp {
 		return "false";
 	}
 
-	public void updateDoc(CrudRepository repo) {
-		String id = "John Doe";
+	public void updateDoc(CrudRepository repo, String uid, String tag) {
 		CrudDocument doc = new CrudDocument();
-		doc.setId(id);
 		// update the doc and re-commit
 		System.out.println("Updating document with new value...");
-		doc.setName("50");
+		doc = repo.get(uid);
+		doc.setTag(tag);
 		repo.update(doc);
 		System.out.println("Wrote updated document to database!");
 	}
-
+	
 	public void updateMainDoc(MainRepository repo) {
+		final String sid = "iicsupport_constant";
 		ConstantDocument doc = new ConstantDocument();
+		doc = repo.get(sid);
 		doc.setMainID("");
 		// update the doc and re-commit
 		System.out.println("Updating document with new value...");

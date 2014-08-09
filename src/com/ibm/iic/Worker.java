@@ -24,6 +24,9 @@
 
 package com.ibm.iic;
 
+import java.net.MalformedURLException;
+import java.util.Map;
+
 import javax.jms.Connection;
 import javax.jms.Destination;
 import javax.jms.JMSException;
@@ -33,10 +36,11 @@ import javax.jms.MessageProducer;
 import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
-
+import com.cloudant.OperatorDB;
 import com.ibm.iic.MQLightConnectionHelper;
 import com.ibm.json.java.JSONObject;
 import com.ibm.msg.client.wmq.WMQConstants;
+import com.twilio.sdk.TwilioRestException;
 
 /**
  * This file forms part of the MQ Light Sample Messaging Application - Worker
@@ -56,7 +60,7 @@ import com.ibm.msg.client.wmq.WMQConstants;
 public class Worker implements Runnable {
 
 	private static Worker instance = null;
-	
+
 	private boolean unlock = true;
 
 	public boolean isUnlock() {
@@ -102,7 +106,6 @@ public class Worker implements Runnable {
 		MessageConsumer consumer = sess.createConsumer(queue);
 
 		int errorCount = 0;
-		String ID = getID();
 		System.out.println("begin===============");
 		// Keep running until the worker throws ten errors, then drop
 		while (errorCount < 10) {
@@ -122,17 +125,16 @@ public class Worker implements Runnable {
 				// Generate the reply message
 				// This takes the body of the incoming message, converts it to
 				// upper case, then returns it with this instance ID
-//				String msg = null;
+				String msg = null;
 				TextMessage replyMessage = sess.createTextMessage();
 				if (message instanceof TextMessage) {
-//					msg = new String(((TextMessage) message).getText()
-//							.getBytes("UTF-8"), "UTF-8");
-					String convertedMsg = ((TextMessage) message).getText()
-							.toUpperCase();
-					replyMessage.setText(convertedMsg
-							+ "\tProcessed by worker ID: " + ID);
+					msg = new String(((TextMessage) message).getText()
+							.getBytes("UTF-8"), "UTF-8");
+					String convertedMsg = sendMsg(msg);
+					replyMessage.setText("The message \"" + convertedMsg + "\""
+							+ " have been sent to the applicant via SMS.");
 				} else {
-					String txt = "ERROR! message received was not a TextMessage!";
+					String txt = "ERROR!";
 					replyMessage.setText(txt);
 				}
 
@@ -160,6 +162,28 @@ public class Worker implements Runnable {
 		sess.close();
 		conn.close();
 		System.out.println("10 errors found - exiting this worker instance");
+	}
+
+	private String sendMsg(String message) throws JMSException,
+			MalformedURLException {
+		System.out.println("send message============" + message);
+		String result = "";
+		OperatorDB odb = new OperatorDB();
+		Map<String, String> map = odb.getRequestMap();
+		if (message.equals("approve")) {
+			result = "Your request has been approved by IIC, please record this request ID: "
+					+ map.get("id");
+		} else if (message.equals("reject")) {
+			result = "Your request has been rejected.";
+		}
+		try {
+			SmsSender.sendSMS(map.get("mobilephone"), result);
+		} catch (TwilioRestException e) {
+			e.printStackTrace();
+		}
+		odb.updateTag(map.get("id"), message);
+		odb.updateMainDoc();
+		return result;
 	}
 
 	/**
@@ -199,6 +223,6 @@ public class Worker implements Runnable {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 }

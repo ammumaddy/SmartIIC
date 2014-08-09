@@ -19,11 +19,20 @@ public class OperatorDB {
 	private CrudWithEktorp cwe = null;
 	private CouchDbConnector dbc = null;
 
+	public OperatorDB() {
+		try {
+			dbc = getCouchDBConnector();
+			cwe = new CrudWithEktorp();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public Map<String, String> getRequestMap() throws MalformedURLException {
 		System.out.println("begin");
 		Map<String, String> map = new HashMap<String, String>();
 		String did = getMID();
-		if (did.equals("false")) {
+		if (did.equals("")) {
 			System.out.println("false");
 		} else {
 			CrudRepository cr = new CrudRepository(dbc);
@@ -64,5 +73,17 @@ public class OperatorDB {
 		repo = new MainRepository(dbc);
 		String did = cwe.readMainDoc(repo, sid);
 		return did;
+	}
+	
+	public void updateTag(String uid, String tag) throws MalformedURLException {
+		CrudRepository repo = null;
+		repo = new CrudRepository(dbc);
+		cwe.updateDoc(repo, uid, tag);
+	}
+	
+	public void updateMainDoc() throws MalformedURLException {
+		MainRepository repo = null;
+		repo = new MainRepository(dbc);
+		cwe.updateMainDoc(repo);
 	}
 }
