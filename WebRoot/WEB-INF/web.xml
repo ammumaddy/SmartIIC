@@ -9,22 +9,22 @@
 		<servlet-name>FrontendServlet</servlet-name>
 		<servlet-class>com.ibm.iic.FrontendServlet</servlet-class>
 	</servlet>
-	<servlet>
-		<servlet-name>StartServlet</servlet-name>
-		<servlet-class>com.ibm.iic.StartServlet</servlet-class>
-	</servlet>
-	<servlet>
-		<servlet-name>WorkerServlet</servlet-name>
-		<servlet-class>com.ibm.iic.WorkerServlet</servlet-class>
-	</servlet>
 	<servlet-mapping>
 		<servlet-name>FrontendServlet</servlet-name>
 		<url-pattern>/FrontendServlet</url-pattern>
 	</servlet-mapping>
+	<servlet>
+		<servlet-name>StartServlet</servlet-name>
+		<servlet-class>com.ibm.iic.StartServlet</servlet-class>
+	</servlet>
 	<servlet-mapping>
 		<servlet-name>StartServlet</servlet-name>
 		<url-pattern>/StartServlet</url-pattern>
 	</servlet-mapping>
+	<servlet>
+		<servlet-name>WorkerServlet</servlet-name>
+		<servlet-class>com.ibm.iic.WorkerServlet</servlet-class>
+	</servlet>
 	<servlet-mapping>
 		<servlet-name>WorkerServlet</servlet-name>
 		<url-pattern>/WorkerServlet</url-pattern>
