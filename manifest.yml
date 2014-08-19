@@ -1,0 +1,5 @@
+applications:
+- name: smartiic
+  memory: 512M
+  host:  smartiic-${random-word}
+  domain: mybluemix.net
