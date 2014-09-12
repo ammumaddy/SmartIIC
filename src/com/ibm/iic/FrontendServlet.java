@@ -188,22 +188,9 @@ public class FrontendServlet extends HttpServlet {
 		Random rand = new Random();
 		int ID = rand.nextInt();
 		if (request.getQueryString().startsWith("message=")) {
-			// Extract the 'message' parameter from the request message, this
-			// contains the message to divide and send to the back end
-			// applications
-			// for processing
 			String encodedRequest = request.getQueryString().substring(8);
 			String message = URLDecoder.decode(encodedRequest, "UTF-8");
-			// Split the 'message' into individual words to allow for parallel
-			// processing at the back end
-			System.out.println("message==" + message);
-
-			// Process the JMS request messages
 			try {
-
-				// Create the JMS resources required to send the request and
-				// receive
-				// the reply messages
 				Connection connection = connHelper.getJmsConnectionFactory()
 						.createConnection(connHelper.getUsername(),
 								connHelper.getPassword());
@@ -212,23 +199,14 @@ public class FrontendServlet extends HttpServlet {
 				MessageProducer producer = session
 						.createProducer(myRequestQueue);
 				producer.setTimeToLive(30000);
-
-				// Start the connection so messages can be sent
 				connection.start();
-				// Build the request message specifying the:
-				// - word to process
-				// - the reply destination to use
 				TextMessage requestMsg = session.createTextMessage(message);
 				requestMsg.setJMSReplyTo(myReplyQueue);
 				requestMsg.setIntProperty("batchID", ID);
 				requestMsg.setIntProperty(WMQConstants.JMS_IBM_CHARACTER_SET,
 						WMQConstants.CCSID_UTF8);
-
-				// Send the request message
 				producer.send(requestMsg);
 				messagesSent = 150;
-
-				// Clean-up the JMS resources
 				producer.close();
 				session.close();
 				connection.close();

@@ -3,6 +3,7 @@ package com.cloudant;
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
 import org.ektorp.http.HttpClient;
@@ -10,12 +11,12 @@ import org.ektorp.http.StdHttpClient;
 import org.ektorp.impl.StdCouchDbConnector;
 import org.ektorp.impl.StdCouchDbInstance;
 
+import com.ibm.iic.FileReader;
+
 public class OperatorDB {
 	final static String sid = "iicsupport_constant";
-	final static String user = "cf163141-1e0d-4556-aa47-caa4fe5b4ce7-bluemix";
-	final static String pass = "02c6db608127ceb94f3320e9c164fc90e2c20559d79da71236c9c9eedbb7f294";
 	final static String db = "iicsupport";
-	final static String hosturl = "smartiic.mybluemix.net/StartServlet?message=";
+
 	private CrudWithEktorp cwe = null;
 	private CouchDbConnector dbc = null;
 
@@ -57,6 +58,11 @@ public class OperatorDB {
 	}
 
 	public CouchDbConnector getCouchDBConnector() throws MalformedURLException {
+		FileReader fr = new FileReader();
+		HashMap<String, String> map = fr.getCloudantMap();
+		String user = map.get("user");
+		String pass = map.get("pass");
+		
 		// create the http connection
 		HttpClient httpClient;
 		httpClient = new StdHttpClient.Builder()

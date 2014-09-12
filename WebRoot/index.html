@@ -5,17 +5,171 @@
 <head>
 <meta http-equiv="Content-Style-Type" content="text/css; charset=UTF-8">
 <link rel="stylesheet" href="style.css">
-<title>IIC Approval Tool</title>
+<title>Approval Tool</title>
+<script type="text/javascript">
+	function printResult(result) {
+		var values = result.split("@");
+		document.getElementById("resultState").textContent = values[0];
+		var table = document.getElementById("appTable");
+		var row = table.insertRow(-1);
+		var i = 0;
+		row.innerHTML = "<td colspan=\"1\" id=\"result" + i + "\"><div>"
+				+ "</div></td><td colspan=\"2\" id=\"result1" + i + "\"></td>";
+		document.getElementById("result1" + i).textContent = decodeURIComponent(values[1]);
+
+		document.getElementById("submit").disabled = false;
+	}
+
+	function printInfo(result) {
+		var table = document.getElementById("mainTable");
+		var keys = Object.keys(result);
+		for ( var i in keys) {
+			var key = keys[i];
+			var row = table.insertRow(-1);
+			row.innerHTML = "<tr><td colspan=\"1\" id=\"res" + i + "\">"
+					+ "</td><td colspan=\"2\" id=\"resv" + i + "\"></div></td></tr>";
+			document.getElementById("res" + i).textContent = decodeURIComponent(keys[i])
+					+ ": ";
+			document.getElementById("resv" + i).textContent = decodeURIComponent(result[key]);
+		}
+	}
+
+	function clearResults() {
+		var table = document.getElementById("appTable");
+		while (table.rows.length > 4) {
+			table.deleteRow(4);
+		}
+	}
+
+	function getRequestHandler(req) {
+		return function() {
+			if (req.readyState == 4) {
+				if (req.status == 200) {
+					var result = req.responseText;
+					printResult(result);
+				} else {
+					printResult("HTTP Error Received", req.status);
+				}
+			}
+		}
+	}
+
+	function getAutoRequestHandler(req2) {
+		return function() {
+			if (req2.readyState == 4) {
+				if (req2.status == 200) {
+					var info = eval("(" + req2.responseText + ")");
+					printInfo(info);
+				} else {
+					printInfo("HTTP Error Received", req2.status);
+				}
+			}
+		}
+	}
+
+	function submitRequest() {
+		var url = "FrontendServlet";
+		data = document.getElementById("message").value;
+		if (data == '') {
+			clearResults();
+			document.getElementById("resultState").innerHTML = "Select Opinion";
+		} else {
+			document.getElementById("submit").disabled = true;
+			var parms = "message=" + data;
+			var request = new XMLHttpRequest();
+			request.onreadystatechange = getRequestHandler(request);
+			request.open("POST", url + "?" + parms, true);
+			request.setRequestHeader("Content-type",
+					"application/x-www-form-urlencoded");
+			request.setRequestHeader("Content-length", parms.length);
+			request.send(parms);
+			clearResults();
+			document.getElementById("resultState").innerHTML = "Waiting...";
+		}
+	}
+
+	function checkSubmitKey(e) {
+		if (document.getElementById("submit").disabled == false) {
+			var charCode;
+
+			if (e && e.which) {
+				charCode = e.which;
+			} else if (window.event) {
+				e = window.event;
+				charCode = e.keyCode;
+			}
+
+			if (charCode == 13) {
+				submitRequest();
+			}
+		}
+	}
+
+	function submitAutoRequest() {
+		var url2 = "StartServlet";
+		var parms2 = "lorem=ipsum&name=binny";
+		var request2 = new XMLHttpRequest();
+		request2.onreadystatechange = getAutoRequestHandler(request2);
+		request2.open("POST", url2 + "?" + parms2, true);
+		request2.setRequestHeader("Content-type",
+				"application/x-www-form-urlencoded");
+		request2.setRequestHeader("Content-length", parms2.length);
+		request2.send(null);
+
+	}
+
+	document.onreadystatechange = function() {
+		if (document.readyState == "complete") {
+			submitAutoRequest();
+		}
+	}
+</script>
 </head>
-<frameset rows="68,*" frameborder="0" framespacing="0" border="0">
-	<frame src="./topBanner.html" scrolling="NO" name="TradeFrameTop">
-    <frame src="./mainPage.html" scrolling="AUTO" name="TradeFrameBottom">
-	<noframes>
-	    <body>
-	        <P>Need browser which supports frames to see this page</P>
-	    </body>
-	</noframes>
-</frameset>
+
+<body bgcolor="#cccccc">
+	<table width="100%" bgcolor="#000000"
+		background="images/IBMBackGround1.gif">
+		<tbody>
+			<tr height="45">
+				<td align="center"><font color="white"
+					size="5%"><b>Facilities Administrator Tool</b></font></td>
+			</tr>
+
+		</tbody>
+	</table>
+	
+	<h2 align="center">Application Information:</h2>
+	<div id="resultInfo" align="center">
+		<table id="mainTable" class="styleTable">
+
+		</table>
+	</div>
+	<p>
+	<table id="appTable" align="center">
+		<tr>
+			<td width="50%" align="left"><b>Approval Opinion:</b></td>
+			<td><select name="message" id="message"><option
+						value="">--Select--</option>
+					<option value="approve">Approve</option>
+					<option value="reject">Reject</option></select></td>
+			<td align="left"><input type="button" id="submit"
+				value="Send" onclick="submitRequest()" /></td>
+			<td></td>
+		</tr>
+		<tr>
+			<td height="10" colspan="4"></td>
+		</tr>
+		<tr>
+			<td align="left"><b>SMS Result:</b></td>
+			<td colspan="1"><div id="resultState">None</div></td>
+			<td></td>
+		</tr>
+		<tr id="resultMessages">
+			<!-- Placeholder row to store responses later -->
+			<td height="10" colspan="4"></td>
+		</tr>
+	</table>
+</body>
 </html>
 
 

@@ -80,15 +80,6 @@ public class Worker implements Runnable {
 		return instance;
 	}
 
-	/**
-	 * Main() entry point for java application. Synchronously connects to a
-	 * queue and waits for a message, then processes it and returns it to the
-	 * reply queue supplied with the message. The worker will run until it has
-	 * received ten erroneous messages.
-	 * 
-	 * @param args
-	 * @throws Exception
-	 */
 	protected void startWorker() throws Exception {
 		// Establish a connection to the request queue
 		MQLightConnectionHelper connHelper = MQLightConnectionHelper
@@ -106,14 +97,11 @@ public class Worker implements Runnable {
 		MessageConsumer consumer = sess.createConsumer(queue);
 
 		int errorCount = 0;
-		System.out.println("begin===============");
 		// Keep running until the worker throws ten errors, then drop
 		while (errorCount < 10) {
 			// Wait to receive a message
 			Message message = consumer.receive();
 			try {
-				System.out.println("Worker invoked");
-
 				// Retrieve the destination to send a reply to.
 				Destination replyDestination = message.getJMSReplyTo();
 
@@ -164,28 +152,6 @@ public class Worker implements Runnable {
 		System.out.println("10 errors found - exiting this worker instance");
 	}
 
-	private String sendMsg(String message) throws JMSException,
-			MalformedURLException {
-		System.out.println("send message============" + message);
-		String result = "";
-		OperatorDB odb = new OperatorDB();
-		Map<String, String> map = odb.getRequestMap();
-		if (message.equals("approve")) {
-			result = "Your request has been approved by IIC, please record this request ID: "
-					+ map.get("id");
-		} else if (message.equals("reject")) {
-			result = "Your request has been rejected.";
-		}
-		try {
-			SmsSender.sendSMS(map.get("mobilephone"), result);
-		} catch (TwilioRestException e) {
-			e.printStackTrace();
-		}
-		odb.updateTag(map.get("id"), message);
-		odb.updateMainDoc();
-		return result;
-	}
-
 	/**
 	 * Parse the environment variables to get the ID string of this worker
 	 * instance
@@ -214,6 +180,27 @@ public class Worker implements Runnable {
 					.println("Worker:getID() --- ERROR VCAP_APPLICATION cannot be parsed");
 			return null;
 		}
+	}
+
+	private String sendMsg(String message) throws JMSException,
+			MalformedURLException {
+		String result = "";
+		OperatorDB odb = new OperatorDB();
+		Map<String, String> map = odb.getRequestMap();
+		if (message.equals("approve")) {
+			result = "Your request has been approved by IIC, please record this request ID: "
+					+ map.get("id");
+		} else if (message.equals("reject")) {
+			result = "Your request has been rejected.";
+		}
+		try {
+			SmsSender.sendSMS(map.get("mobilephone"), result);
+		} catch (TwilioRestException e) {
+			e.printStackTrace();
+		}
+		odb.updateTag(map.get("id"), message);
+		odb.updateMainDoc();
+		return result;
 	}
 
 	@Override
