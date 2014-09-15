@@ -1,0 +1,13 @@
+###############
+#    files    #
+###############
+cloudant.properties
+twilio.properties
+.gitignore
+*.class
+
+###############
+#   folders   #
+###############
+/classes/
+/.settings/
