@@ -13,10 +13,9 @@
 		var table = document.getElementById("appTable");
 		var row = table.insertRow(-1);
 		var i = 0;
-		row.innerHTML = "<td colspan=\"1\" id=\"result" + i + "\"><div>"
-				+ "</div></td><td colspan=\"2\" id=\"result1" + i + "\"></td>";
+		row.innerHTML = "<td colspan=\"1\" id=\"result" + i + "\" align=\"left\">"
+				+ "</td><td colspan=\"2\" id=\"result1" + i + "\" align=\"left\"></td>";
 		document.getElementById("result1" + i).textContent = decodeURIComponent(values[1]);
-
 		document.getElementById("submit").disabled = false;
 	}
 
@@ -147,7 +146,7 @@
 	<p>
 	<table id="appTable" align="center">
 		<tr>
-			<td width="50%" align="left"><b>Approval Opinion:</b></td>
+			<td width="50%" align="right"><b>Approval Opinion:</b></td>
 			<td><select name="message" id="message"><option
 						value="">--Select--</option>
 					<option value="approve">Approve</option>
@@ -160,7 +159,7 @@
 			<td height="10" colspan="4"></td>
 		</tr>
 		<tr>
-			<td align="left"><b>SMS Result:</b></td>
+			<td align="right"><b>SMS Result:</b></td>
 			<td colspan="1"><div id="resultState">None</div></td>
 			<td></td>
 		</tr>
