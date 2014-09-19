@@ -14,9 +14,7 @@ public class FileReader {
 		HashMap<String, String> map = new HashMap<String, String>();
 		final JSONObject jCred = parseVCAPServices("cloudantNoSQLDB");
 		String user = (String) jCred.get("username");
-		System.out.println("username========= " + user);
 		String pass = (String) jCred.get("password");
-		System.out.println("password========= " + pass);
 		map.put("user", user);
 		map.put("pass", pass);
 		return map;
@@ -32,9 +30,7 @@ public class FileReader {
 			
 			final JSONObject jCred = parseVCAPServices("user-provided");
 			String sid = (String) jCred.get("accountSID");
-			System.out.println("sid========= " + sid);
 			String token = (String) jCred.get("authToken");
-			System.out.println("token========= " + token);
 			
 			map.put("from", from);
 			map.put("sid", sid);
