@@ -1,14 +1,16 @@
 package com.ibm.iic;
 
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.Properties;
+import java.util.Iterator;
 
 import com.ibm.json.java.JSONArray;
 import com.ibm.json.java.JSONObject;
+import com.twilio.sdk.TwilioRestClient;
+import com.twilio.sdk.TwilioRestException;
+import com.twilio.sdk.resource.instance.IncomingPhoneNumber;
+import com.twilio.sdk.resource.list.IncomingPhoneNumberList;
 
 public class FileReader {
-	
 
 	public HashMap<String, String> getCloudantMap() {
 		HashMap<String, String> map = new HashMap<String, String>();
@@ -21,21 +23,18 @@ public class FileReader {
 	}
 
 	public HashMap<String, String> getTwilioMap() {
-		String filename = "twilio.properties";
-		Properties prop = new Properties();
 		HashMap<String, String> map = new HashMap<String, String>();
 		try {
-			prop.load(getClass().getResourceAsStream(filename));
-			String from = prop.getProperty("from");
-			
+
 			final JSONObject jCred = parseVCAPServices("user-provided");
 			String sid = (String) jCred.get("accountSID");
 			String token = (String) jCred.get("authToken");
-			
+			String from = getNumber(sid, token);
+
 			map.put("from", from);
 			map.put("sid", sid);
 			map.put("token", token);
-		} catch (IOException e) {
+		} catch (TwilioRestException e) {
 			e.printStackTrace();
 		}
 		return map;
@@ -50,7 +49,8 @@ public class FileReader {
 		// Get the contents of the environment variable.
 		final String envVCAPServices = System.getenv("VCAP_SERVICES");
 		if (envVCAPServices == null) {
-			System.err.println("ERROR: The VCAP_SERVICES environment variable has not been set");
+			System.err
+					.println("ERROR: The VCAP_SERVICES environment variable has not been set");
 			return null;
 		}
 
@@ -63,7 +63,8 @@ public class FileReader {
 
 			// Check if any service has been found
 			if (aService == null) {
-				throw new Exception("ERROR: Connection details could not be found.");
+				throw new Exception(
+						"ERROR: Connection details could not be found.");
 			}
 
 			// Get the credentials of the service
@@ -76,7 +77,8 @@ public class FileReader {
 			// credentials object
 			final JSONObject jCred = (JSONObject) jWSMQS.get("credentials");
 			if (jCred == null) {
-				System.err.println("ERROR: JSONArray has no service credentials");
+				System.err
+						.println("ERROR: JSONArray has no service credentials");
 				return null;
 			}
 			return jCred;
@@ -86,4 +88,26 @@ public class FileReader {
 			return null;
 		}
 	}
+
+	public String getNumber(String sid, String token)
+			throws TwilioRestException {
+		String number = "";
+		TwilioRestClient client = new TwilioRestClient(sid, token);
+
+		// Build a filter for the AvailablePhoneNumberList
+		HashMap<String, String> params = new HashMap<String, String>();
+
+		IncomingPhoneNumberList innumbers = client.getAccount()
+				.getIncomingPhoneNumbers(params);
+		for (Iterator<IncomingPhoneNumber> it = innumbers.iterator(); it
+				.hasNext();) {
+			IncomingPhoneNumber ip = it.next();
+			if (ip.getPhoneNumber() != null && !ip.getPhoneNumber().equals("")) {
+				number = ip.getPhoneNumber();
+				break;
+			}
+		}
+		return number;
+	}
+	
 }
